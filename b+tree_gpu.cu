@@ -43,6 +43,7 @@ class BPTree : public Managed {
 
 public:
     __host__ BPTree();
+    __host__ void init() { root = NULL; }  // safe init after cudaHostAlloc (raw memory, no constructor)
     __host__ __device__ Node* search(int);
     __host__  void insert(int, int*);
     __host__ __device__ void display(Node*, int);
@@ -56,10 +57,10 @@ public:
 // Constructor of Node
 Node::Node()
 {
-    //key = new int[MAXI];
     cudaHostAlloc(&key, sizeof(int) * MAXI, cudaHostAllocDefault);
-    //ptr = new Node * [MAXI + 1];
-    cudaHostAlloc(&ptr, sizeof(int) * (MAXI + 1), cudaHostAllocDefault);
+    cudaHostAlloc(&ptr, sizeof(Node*) * (MAXI + 1), cudaHostAllocDefault);
+    IS_LEAF = false;  // initialize to safe default
+    size = 0;         // initialize to safe default
 }
 
 // Initialise the BPTree Node
@@ -630,6 +631,7 @@ int main(int argc, char** argv)
 {
     BPTree* node;
     cudaHostAlloc(&node, sizeof(BPTree), cudaHostAllocDefault);
+    node->init();
     cudaDeviceSynchronize();
     int n, m, q;
     //Input file pointer declaration
